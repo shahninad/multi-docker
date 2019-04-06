@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ninad/react-test -f ./client/Dockerfile.dev ./client 
+
+script: 
+  - docker run ninad/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ninad/multi-client ./client
+  - docker build -t ninad/multi-server ./server
+  - docker build -t ninad/multi-nginx ./nginx
+  - docker build -t ninad/multi-worker ./worker
+  # Login into Docker CLI
+  - echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
+  #push the images to docker hub
+  - docker push ninad/multi-client
+  - docker push ninad/multi-server
+  - docker push ninad/multi-nginx
+  - docker push ninad/multi-worker
